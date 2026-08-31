@@ -32,12 +32,18 @@ const workouts={
  ["Standard Push-Ups","body"],["Wide Front Pull-Ups","pull"],["Military Push-Ups","body"],["Reverse Grip Chin-Ups","pull"],
  ["Wide Fly Push-Ups","body"],["Closed Grip Overhand Pull-Ups","pull"],["Decline Push-Ups","body"],["Heavy Pants","weight"],
  ["Diamond Push-Ups","body"],["Lawnmowers","weight"],["Dive-Bomber Push-Ups","body"],["Back Flys","weight"]]},
- shoulders_arms:{name:"Shoulders & Arms",rounds:2,ex:[
- ["Alternating Shoulder Presses","weight"],["In & Out Bicep Curls","weight"],["Two-Arm Tricep Kickbacks","weight"],
- ["Deep Swimmer's Presses","weight"],["Full Supination Concentration Curls","weight"],["Chair Dips","body"],
- ["Upright Rows","weight"],["Static Arm Curls","weight"],["Flip-Grip Twist Tricep Kickbacks","weight"],
- ["Two-Angle Shoulder Flys","weight"],["Crouching Cohen Curls","weight"],["Lying-Down Tricep Extensions","weight"],
- ["In & Out Straight-Arm Shoulder Flys","weight"],["Congdon Curls","weight"],["Side Tri-Rises","body"]]}
+ shoulders_arms:{name:"Shoulders & Arms",groups:[
+ {label:"SET 1A",ex:[["Alternating Shoulder Presses","weight","SHOULDERS"],["In & Out Bicep Curls","weight","BICEPS"],["Two-Arm Tricep Kickbacks","weight","TRICEPS"]]},
+ {label:"SET 1B",ex:[["Alternating Shoulder Presses","weight","SHOULDERS"],["In & Out Bicep Curls","weight","BICEPS"],["Two-Arm Tricep Kickbacks","weight","TRICEPS"]]},
+ {label:"SET 2A",ex:[["Deep Swimmer's Presses","weight","SHOULDERS"],["Full Supination Concentration Curls","weight","BICEPS"],["Chair Dips","body","TRICEPS"]]},
+ {label:"SET 2B",ex:[["Deep Swimmer's Presses","weight","SHOULDERS"],["Full Supination Concentration Curls","weight","BICEPS"],["Chair Dips","body","TRICEPS"]]},
+ {label:"SET 3A",ex:[["Upright Rows","weight","SHOULDERS"],["Static Arm Curls","weight","BICEPS"],["Flip-Grip Twist Tricep Kickbacks","weight","TRICEPS"]]},
+ {label:"SET 3B",ex:[["Upright Rows","weight","SHOULDERS"],["Static Arm Curls","weight","BICEPS"],["Flip-Grip Twist Tricep Kickbacks","weight","TRICEPS"]]},
+ {label:"SET 4A",ex:[["Two-Angle Shoulder Flys","weight","SHOULDERS"],["Crouching Cohen Curls","weight","BICEPS"],["Lying-Down Tricep Extensions","weight","TRICEPS"]]},
+ {label:"SET 4B",ex:[["Two-Angle Shoulder Flys","weight","SHOULDERS"],["Crouching Cohen Curls","weight","BICEPS"],["Lying-Down Tricep Extensions","weight","TRICEPS"]]},
+ {label:"SET 5A",ex:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]},
+ {label:"SET 5B",ex:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]}
+ ]}
 };
 const H="p90x_v3_history", C="p90x_v3_current";
 let old=JSON.parse(localStorage.getItem("p90x_v2_history")||"[]");
@@ -52,21 +58,30 @@ function priorFor(workoutId,k,date,id){
 function desc(e){if(!e)return"—";let a=[];if(e.weight)a.push(e.weight+" lb");if(e.reps)a.push(e.reps+" reps");if(e.mod&&e.mod!=="Standard"&&e.mod!=="None")a.push(e.mod);return a.length?a.join(" × "):"—"}
 function home(){
  active=null;current=null;document.getElementById("saveBtn").classList.add("hidden");document.getElementById("title").textContent="P90X Tracker";document.getElementById("subtitle").textContent="Choose a workout";
- document.getElementById("main").innerHTML=Object.entries(workouts).map(([id,w])=>`<section class="card workoutCard" onclick="start('${id}')"><div class="workoutTitle">${w.name}</div><div class="muted">${w.rounds} rounds • ${w.ex.length*w.rounds} tracked sets</div></section>`).join("")}
+ document.getElementById("main").innerHTML=Object.entries(workouts).map(([id,w])=>{let detail=w.groups?`${w.groups.length} sets • ${w.groups.reduce((n,g)=>n+g.ex.length,0)} tracked entries`:`${w.rounds} rounds • ${w.ex.length*w.rounds} tracked sets`;return`<section class="card workoutCard" onclick="start('${id}')"><div class="workoutTitle">${w.name}</div><div class="muted">${detail}</div></section>`}).join("")}
 function start(id,existing=null){
  active=id;current=existing?JSON.parse(JSON.stringify(existing)):fresh(id);localStorage.setItem(C,JSON.stringify(current));renderWorkout()}
 function key(r,i){return`${r}-${i}`}
 function setv(k,f,v){current.entries[k]=current.entries[k]||{};current.entries[k][f]=v;localStorage.setItem(C,JSON.stringify(current))}
-function renderWorkout(){
- let w=workouts[active];document.getElementById("title").textContent=w.name;document.getElementById("subtitle").textContent=fmtDate(current.date);document.getElementById("saveBtn").classList.remove("hidden");let out="";
- for(let r=1;r<=w.rounds;r++){out+=`<div class="round">ROUND ${r}</div>`;w.ex.forEach((ex,i)=>{let k=key(r,i),e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1];
- out+=`<section class="card"><div class="name">${i+1}. ${ex[0]}</div><div class="last">Last time: ${desc(last)}</div><div class="row">`;
+function exerciseCard(k,ex,num){
+ let e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1],cat=ex[2]||"";
+ let out=`<section class="card">${cat?`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px">${cat}</div>`:""}<div class="name">${num}. ${ex[0]}</div><div class="last">Last time: ${desc(last)}</div><div class="row">`;
  if(type==="weight")out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
  out+=`<div class="grow"><label>Reps</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
  if(type==="pull")out+=`<div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
  if(type==="body")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
- out+=`</div><div style="margin-top:9px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`})}
- document.getElementById("main").innerHTML=out}
+ out+=`</div><div style="margin-top:9px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`;
+ return out;
+}
+function renderWorkout(){
+ let w=workouts[active];document.getElementById("title").textContent=w.name;document.getElementById("subtitle").textContent=fmtDate(current.date);document.getElementById("saveBtn").classList.remove("hidden");let out="";
+ if(w.groups){
+   w.groups.forEach((g,gi)=>{out+=`<div class="round">${g.label}</div>`;g.ex.forEach((ex,i)=>{out+=exerciseCard(`g${gi}-${i}`,ex,i+1)})});
+ }else{
+   for(let r=1;r<=w.rounds;r++){out+=`<div class="round">ROUND ${r}</div>`;w.ex.forEach((ex,i)=>{out+=exerciseCard(key(r,i),ex,i+1)})}
+ }
+ document.getElementById("main").innerHTML=out;
+}
 function saveWorkout(){
  if(!Object.values(current.entries).some(e=>e.reps)){alert("Enter at least one set first.");return}
  let i=history.findIndex(w=>w.id===current.id);if(i>=0)history[i]=JSON.parse(JSON.stringify(current));else history.push(JSON.parse(JSON.stringify(current)));
