@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>P90X Tracker</title>
@@ -22,7 +25,7 @@ textarea{font-size:15px;min-height:44px}.name{font-size:18px;font-weight:750}.la
 .danger{background:#7f1d1d}.secondary{background:#334155}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.empty{text-align:center;color:#94a3b8;padding:50px 20px}.hidden{display:none}
 </style></head>
 <body>
-<header><h1>P90X Tracker</h1><div class="sub" id="subtitle"></div>
+<header><h1>P90X Tracker</h1><div class="sub" id="subtitle"></div><div style="color:#64748b;font-size:11px;margin-top:3px">v2.1</div>
 <div class="tabs"><button class="tab active" id="worktab" onclick="showTab('work')">Workout</button><button class="tab" id="histtab" onclick="showTab('history')">History</button></div></header>
 <main class="wrap"><div id="work"></div><div id="history" class="hidden"></div></main>
 <button id="saveBtn" class="save" onclick="saveWorkout()">Save Workout</button>
@@ -50,9 +53,29 @@ out+=`</div><div style="margin-top:9px"><label>Quick note</label><textarea place
 document.getElementById("work").innerHTML=out}
 function renderHistory(){let box=document.getElementById("history");if(!history.length){box.innerHTML=`<div class="empty">No saved workouts yet.<br>Your first saved Chest & Back workout becomes the baseline.</div>`;return}
 box.innerHTML=[...history].reverse().map((w,ri)=>{let idx=history.length-1-ri,sets=Object.values(w.entries||{}).filter(e=>e.reps).length;return`<section class="card"><div class="histHead"><div><div class="date">${fmtDate(w.date)}</div><div class="muted">Chest & Back • ${sets}/24 sets recorded</div></div></div><div class="actions"><button class="btn secondary" onclick="editWorkout(${idx})">Edit</button><button class="btn danger" onclick="deleteWorkout(${idx})">Delete</button></div></section>`}).join("")}
-function saveWorkout(){if(!Object.values(current.entries).some(e=>e.reps)){alert("Enter at least one set first.");return}let existing=history.findIndex(w=>w.id===current.id);if(existing>=0)history[existing]=JSON.parse(JSON.stringify(current));else history.push(JSON.parse(JSON.stringify(current)));localStorage.setItem(H,JSON.stringify(history));current=fresh();localStorage.setItem(C,JSON.stringify(current));renderWork();renderHistory();alert("Workout saved.")}
+function saveWorkout(){if(!Object.values(current.entries).some(e=>e.reps)){alert("Enter at least one set first.");return}let existing=history.findIndex(w=>w.id===current.id);if(existing>=0)history[existing]=JSON.parse(JSON.stringify(current));else history.push(JSON.parse(JSON.stringify(current)));localStorage.setItem(H,JSON.stringify(history));current=fresh();localStorage.setItem(C,JSON.stringify(current));renderWork();renderHistory();
+async function checkForUpdate(){
+  try{
+    const r=await fetch("./index.html?update="+Date.now(),{cache:"no-store"});
+    const t=await r.text();
+    if(t.includes(">v2.1<")===false && t.includes("v2.1")===false){
+      location.reload();
+    }
+  }catch(e){}
+}
+window.addEventListener("focus",checkForUpdate);alert("Workout saved.")}
 function editWorkout(i){current=JSON.parse(JSON.stringify(history[i]));localStorage.setItem(C,JSON.stringify(current));showTab("work");renderWork()}
 function deleteWorkout(i){if(confirm("Delete this saved workout?")){history.splice(i,1);localStorage.setItem(H,JSON.stringify(history));renderHistory();renderWork()}}
 function showTab(t){document.getElementById("work").classList.toggle("hidden",t!=="work");document.getElementById("history").classList.toggle("hidden",t!=="history");document.getElementById("saveBtn").classList.toggle("hidden",t!=="work");document.getElementById("worktab").classList.toggle("active",t==="work");document.getElementById("histtab").classList.toggle("active",t==="history");if(t==="history"){document.getElementById("subtitle").textContent="Chest & Back history";renderHistory()}else renderWork()}
 renderWork();renderHistory();
+async function checkForUpdate(){
+  try{
+    const r=await fetch("./index.html?update="+Date.now(),{cache:"no-store"});
+    const t=await r.text();
+    if(t.includes(">v2.1<")===false && t.includes("v2.1")===false){
+      location.reload();
+    }
+  }catch(e){}
+}
+window.addEventListener("focus",checkForUpdate);
 </script></body></html>
