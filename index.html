@@ -22,7 +22,7 @@ textarea{font-size:15px;min-height:44px}.name{font-size:18px;font-weight:750}.la
 .danger{background:#7f1d1d}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.empty{text-align:center;color:#94a3b8;padding:45px 20px}.hidden{display:none}
 </style></head>
 <body>
-<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.0</div>
+<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.2</div>
 <div class="topBtns"><button class="btn" onclick="home()">Home</button><button class="btn" onclick="showHistory()">History</button></div></header>
 <main class="wrap" id="main"></main>
 <button id="saveBtn" class="save hidden" onclick="saveWorkout()">Save Workout</button>
@@ -43,6 +43,31 @@ const workouts={
  {label:"SET 4B",ex:[["Two-Angle Shoulder Flys","weight","SHOULDERS"],["Crouching Cohen Curls","weight","BICEPS"],["Lying-Down Tricep Extensions","weight","TRICEPS"]]},
  {label:"SET 5A",ex:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]},
  {label:"SET 5B",ex:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]}
+ ]},
+ legs_back:{name:"Legs & Back",sequence:[
+ ["Balance Lunge","weight","LEGS","reps","25 each leg"],
+ ["Calf-Raise Squat","weight","LEGS","reps",""],
+ ["Reverse Grip Chin-Up","pull","BACK","reps",""],
+ ["Super Skater","body","LEGS","reps","25 each side"],
+ ["Wall Squat","time","LEGS","seconds","90 sec"],
+ ["Wide Front Pull-Up","pull","BACK","reps",""],
+ ["Step Back Lunge","weight","LEGS","reps","15 each side"],
+ ["Alternating Side Lunge","weight","LEGS","reps","24 reps"],
+ ["Closed Grip Overhand Pull-Up","pull","BACK","reps",""],
+ ["Single-Leg Wall Squat","time","LEGS","seconds","60 sec"],
+ ["Deadlift Squat","weight","LEGS","reps","20 each leg"],
+ ["Switch Grip Pull-Up","pull","BACK","reps",""],
+ ["Three-Way Lunge with Two-Kick Option","body","LEGS","reps","30 reps"],
+ ["Sneaky Lunge","body","LEGS","reps","20 reps"],
+ ["Reverse Grip Chin-Up","pull","BACK","reps",""],
+ ["Chair Salutations","time","LEGS","seconds","2 reps / 30-sec hold"],
+ ["Toe-Roll Iso Lunge","weight","LEGS","reps","20 each side"],
+ ["Wide Front Pull-Up","pull","BACK","reps",""],
+ ["Groucho Walk","time","LEGS","seconds","45 sec"],
+ ["Calf Raises","weight","LEGS","reps","75 reps"],
+ ["Closed Grip Overhand Pull-Up","pull","BACK","reps",""],
+ ["80/20 Speed Squat","body","LEGS","reps","30 reps per side"],
+ ["Switch Grip Pull-Up","pull","BACK","reps",""]
  ]}
 };
 const H="p90x_v3_history", C="p90x_v3_current";
@@ -58,16 +83,17 @@ function priorFor(workoutId,k,date,id){
 function desc(e){if(!e)return"—";let a=[];if(e.weight)a.push(e.weight+" lb");if(e.reps)a.push(e.reps+" reps");if(e.mod&&e.mod!=="Standard"&&e.mod!=="None")a.push(e.mod);return a.length?a.join(" × "):"—"}
 function home(){
  active=null;current=null;document.getElementById("saveBtn").classList.add("hidden");document.getElementById("title").textContent="P90X Tracker";document.getElementById("subtitle").textContent="Choose a workout";
- document.getElementById("main").innerHTML=Object.entries(workouts).map(([id,w])=>{let detail=w.groups?`${w.groups.length} sets • ${w.groups.reduce((n,g)=>n+g.ex.length,0)} tracked entries`:`${w.rounds} rounds • ${w.ex.length*w.rounds} tracked sets`;return`<section class="card workoutCard" onclick="start('${id}')"><div class="workoutTitle">${w.name}</div><div class="muted">${detail}</div></section>`}).join("")}
+ document.getElementById("main").innerHTML=Object.entries(workouts).map(([id,w])=>{let detail=w.sequence?`${w.sequence.length} exercises • legs + pull-ups`:w.groups?`${w.groups.length} sets • ${w.groups.reduce((n,g)=>n+g.ex.length,0)} tracked entries`:`${w.rounds} rounds • ${w.ex.length*w.rounds} tracked sets`;return`<section class="card workoutCard" onclick="start('${id}')"><div class="workoutTitle">${w.name}</div><div class="muted">${detail}</div></section>`}).join("")}
 function start(id,existing=null){
  active=id;current=existing?JSON.parse(JSON.stringify(existing)):fresh(id);localStorage.setItem(C,JSON.stringify(current));renderWorkout()}
 function key(r,i){return`${r}-${i}`}
 function setv(k,f,v){current.entries[k]=current.entries[k]||{};current.entries[k][f]=v;localStorage.setItem(C,JSON.stringify(current))}
 function exerciseCard(k,ex,num){
- let e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1],cat=ex[2]||"";
- let out=`<section class="card">${cat?`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px">${cat}</div>`:""}<div class="name">${num}. ${ex[0]}</div><div class="last">Last time: ${desc(last)}</div><div class="row">`;
+ let e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1],cat=ex[2]||"",metric=ex[3]||"reps",hint=ex[4]||"";
+ let out=`<section class="card">${cat?`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px">${cat}</div>`:""}<div class="name">${num}. ${ex[0]}</div>${hint?`<div class="muted">${hint}</div>`:""}<div class="last">Last time: ${desc(last)}</div><div class="row">`;
  if(type==="weight")out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
- out+=`<div class="grow"><label>Reps</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
+ if(metric==="seconds") out+=`<div class="grow"><label>Seconds</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
+ else out+=`<div class="grow"><label>Reps</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
  if(type==="pull")out+=`<div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
  if(type==="body")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
  out+=`</div><div style="margin-top:9px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`;
@@ -75,7 +101,9 @@ function exerciseCard(k,ex,num){
 }
 function renderWorkout(){
  let w=workouts[active];document.getElementById("title").textContent=w.name;document.getElementById("subtitle").textContent=fmtDate(current.date);document.getElementById("saveBtn").classList.remove("hidden");let out="";
- if(w.groups){
+ if(w.sequence){
+   w.sequence.forEach((ex,i)=>{out+=exerciseCard(`s-${i}`,ex,i+1)});
+ }else if(w.groups){
    w.groups.forEach((g,gi)=>{out+=`<div class="round">${g.label}</div>`;g.ex.forEach((ex,i)=>{out+=exerciseCard(`g${gi}-${i}`,ex,i+1)})});
  }else{
    for(let r=1;r<=w.rounds;r++){out+=`<div class="round">ROUND ${r}</div>`;w.ex.forEach((ex,i)=>{out+=exerciseCard(key(r,i),ex,i+1)})}
