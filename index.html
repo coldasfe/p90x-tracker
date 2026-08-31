@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>P90X Chest & Back Tracker</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f8fafc;background:#0f172a}
+*{box-sizing:border-box} body{margin:0;background:#0f172a}
+header{position:sticky;top:0;background:#111827ee;backdrop-filter:blur(8px);padding:18px 16px 12px;border-bottom:1px solid #334155;z-index:3}
+h1{font-size:22px;margin:0}.sub{color:#94a3b8;margin-top:5px}.wrap{max-width:680px;margin:auto;padding:12px 12px 100px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:15px;margin:10px 0}
+.row{display:flex;gap:10px;align-items:end}.grow{flex:1}
+label{display:block;font-size:12px;color:#94a3b8;margin-bottom:5px}
+input,select,textarea{width:100%;font-size:18px;border-radius:10px;border:1px solid #475569;background:#0f172a;color:white;padding:11px}
+textarea{font-size:15px;min-height:46px}.name{font-size:18px;font-weight:700;margin-bottom:4px}
+.last{font-size:13px;color:#94a3b8;margin-bottom:12px}.round{font-weight:800;color:#cbd5e1;margin:22px 3px 8px}
+button{border:0;border-radius:12px;padding:13px 16px;font-size:17px;font-weight:700}
+.save{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:12px;right:12px;max-width:656px;margin:auto;background:#f8fafc;color:#0f172a;box-shadow:0 8px 30px #0008}
+.toprow{display:flex;gap:8px;margin-top:12px}.small{background:#334155;color:white;font-size:14px;padding:9px 12px}
+.done{outline:2px solid #64748b}.status{text-align:center;color:#94a3b8;font-size:13px;margin-top:8px}
+</style></head>
+<body>
+<header><h1>Chest & Back</h1><div class="sub">Baseline workout • Week 3</div>
+<div class="toprow"><button class="small" onclick="newWorkout()">New workout</button><button class="small" onclick="clearAll()">Reset saved data</button></div></header>
+<main class="wrap" id="app"></main>
+<button class="save" onclick="saveWorkout()">Save Workout</button>
+<script>
+const exercises=[
+["Standard Push-Ups","body"],["Wide Front Pull-Ups","pull"],["Military Push-Ups","body"],
+["Reverse Grip Chin-Ups","pull"],["Wide Fly Push-Ups","body"],["Closed Grip Overhand Pull-Ups","pull"],
+["Decline Push-Ups","body"],["Heavy Pants","weight"],["Diamond Push-Ups","body"],["Lawnmowers","weight"],
+["Dive-Bomber Push-Ups","body"],["Back Flys","weight"]
+];
+let current=JSON.parse(localStorage.getItem("p90x_current")||"null")||makeWorkout();
+let history=JSON.parse(localStorage.getItem("p90x_history")||"[]");
+function makeWorkout(){return {date:new Date().toISOString(),entries:{}}}
+function key(round,i){return `${round}-${i}`}
+function lastFor(k){for(let x=history.length-1;x>=0;x--){if(history[x].entries[k]) return history[x].entries[k]} return null}
+function desc(e){
+ if(!e)return "—";
+ let a=[]; if(e.weight)a.push(e.weight+" lb"); if(e.reps)a.push(e.reps+" reps"); if(e.mod&&e.mod!="Standard")a.push(e.mod);
+ return a.length?a.join(" × "):"—";
+}
+function render(){
+ let out="";
+ [1,2].forEach(r=>{
+  out+=`<div class="round">ROUND ${r}</div>`;
+  exercises.forEach((ex,i)=>{
+   let k=key(r,i), e=current.entries[k]||{}, last=lastFor(k), type=ex[1];
+   out+=`<section class="card ${e.reps?'done':''}"><div class="name">${i+1}. ${ex[0]}</div><div class="last">Last time: ${desc(last)}</div><div class="row">`;
+   if(type==="weight") out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
+   out+=`<div class="grow"><label>Reps</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
+   if(type==="pull") out+=`<div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?'selected':''}>${v}</option>`).join("")}</select></div>`;
+   if(type==="body") out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Knees"].map(v=>`<option ${e.mod===v?'selected':''}>${v}</option>`).join("")}</select></div>`;
+   out+=`</div><div style="margin-top:10px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`;
+  });
+ });
+ out+=`<div class="status">${Object.values(current.entries).filter(e=>e.reps).length} / 24 sets entered</div>`;
+ document.getElementById("app").innerHTML=out;
+}
+function setv(k,f,v){current.entries[k]=current.entries[k]||{};current.entries[k][f]=v;localStorage.setItem("p90x_current",JSON.stringify(current));}
+function saveWorkout(){
+ if(!Object.values(current.entries).some(e=>e.reps)){alert("Enter at least one set first.");return}
+ history.push(JSON.parse(JSON.stringify(current))); localStorage.setItem("p90x_history",JSON.stringify(history));
+ localStorage.removeItem("p90x_current"); alert("Workout saved. This becomes your Last Time baseline."); current=makeWorkout(); render();
+}
+function newWorkout(){if(confirm("Start a fresh workout? Unsaved entries will be cleared.")){current=makeWorkout();localStorage.setItem("p90x_current",JSON.stringify(current));render()}}
+function clearAll(){if(confirm("Delete all saved Chest & Back history?")){localStorage.clear();history=[];current=makeWorkout();render()}}
+render();
+</script></body></html>
