@@ -29,7 +29,7 @@ textarea{font-size:15px;min-height:44px}.name{font-size:18px;font-weight:750}.la
 <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.5</div><div class="saved" id="savedStatus"></div>
+<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.6</div><div class="saved" id="savedStatus"></div>
 <div class="topBtns"><button class="btn" onclick="home()">Home</button><button class="btn" onclick="showHistory()">History</button></div></header>
 <main class="wrap" id="main"></main>
 <button id="saveBtn" class="save hidden" onclick="saveWorkout()">Finish Workout</button>
@@ -47,10 +47,11 @@ const workouts={
  {label:"SET 3A",ex:[["Upright Rows","weight","SHOULDERS"],["Static Arm Curls","weight","BICEPS"],["Flip-Grip Twist Tricep Kickbacks","weight","TRICEPS"]]},
  {label:"SET 3B",ex:[["Upright Rows","weight","SHOULDERS"],["Static Arm Curls","weight","BICEPS"],["Flip-Grip Twist Tricep Kickbacks","weight","TRICEPS"]]},
  {label:"SET 4A",ex:[["Two-Angle Shoulder Flys","weight","SHOULDERS"],["Crouching Cohen Curls","weight","BICEPS"],["Lying-Down Tricep Extensions","weight","TRICEPS"]]},
- {label:"SET 4B",ex:[["Two-Angle Shoulder Flys","weight","SHOULDERS"],["Crouching Cohen Curls","weight","BICEPS"],["Lying-Down Tricep Extensions","weight","TRICEPS"]]},
+ {label:"SET 4B",ex:[["Two-Angle Shoulder Flys","weight","SHOULDERS"],["Crouching Cohen Curls","weight","BICEPS"],["Lying-Down Tricep Extensions","weight","TRICEPS"]]}
+ ],bonusGroups:[
  {label:"SET 5A",ex:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]},
  {label:"SET 5B",ex:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]}
- ],bonus:[["In & Out Straight-Arm Shoulder Flys","weight","SHOULDERS"],["Congdon Curls","weight","BICEPS"],["Side Tri-Rises","body","TRICEPS"]]},
+ ]},
  legs_back:{name:"Legs & Back",sequence:[
  ["Balance Lunge","weight","LEGS","reps","25 each leg",25],
  ["Calf-Raise Squat","weight","LEGS","reps",""],
@@ -77,30 +78,29 @@ const workouts={
  ["Switch Grip Pull-Up","pull","BACK","reps",""]
  ]} ,
  core_synergistics:{name:"Core Synergistics",sequence:[
- ["Stacked Foot/Staggered Hands Push-Up","body","CORE","reps",""],
- ["Banana Roll","body","CORE","reps","2 reps",2],
- ["Leaning Crescent Lunges","body","CORE","reps","24 reps",24],
- ["Squat Run","time","CORE","seconds","60 sec",60],
- ["Sphinx Push-Up","body","CORE","reps",""],
- ["Bow to Boat","body","CORE","reps","5 reps",5],
- ["Low Lateral Skaters","body","CORE","reps","20 reps",20],
- ["Lunge and Reach","time","CORE","seconds","120 sec",120],
- ["Prison Cell Push-Up","body","CORE","reps","8 reps",8],
- ["Side Hip Raise","body","CORE","reps","30–40 reps"],
- ["Squat X-Press","weight","CORE","reps","30 reps",30],
- ["Plank to Chaturanga Run","time","CORE","seconds","60 sec",60],
- ["Walking Push-Up","body","CORE","reps","4 reps each",4],
- ["Superman Banana","time","CORE","seconds","60 sec",60],
- ["Lunge Kickback Curl Press","weight","CORE","reps","20 reps",20],
- ["Towel Hoppers","time","CORE","seconds","60 sec",60],
- ["Ballistic Stretch","break","BREAK","seconds","45 sec"],
- ["Reach High and Under Push-Ups","body","CORE","reps","max reps"],
- ["Steam Engine","body","CORE","reps","50 reps",50],
- ["Dreya Roll","body","CORE","reps",""]
+ ["Stacked Foot/Staggered Hands Push-Up","body","","reps",""],
+ ["Banana Roll","body","","reps","2 reps",2],
+ ["Leaning Crescent Lunges","weight","","reps","24 reps",24],
+ ["Squat Run","weighttime","","seconds","60 sec",60],
+ ["Sphinx Push-Up","body","","reps",""],
+ ["Bow to Boat","body","","reps","5 reps",5],
+ ["Low Lateral Skaters","body","","reps","20 reps",20],
+ ["Lunge and Reach","weighttime","","seconds","120 sec",120],
+ ["Prison Cell Push-Up","body","","reps","8 reps",8],
+ ["Side Hip Raise","body","","reps","30–40 reps"],
+ ["Squat X-Press","weight","","reps","30 reps",30],
+ ["Plank to Chaturanga Run","plankvar","","seconds","60 sec",60],
+ ["Walking Push-Up","body","","reps","4 reps each",4],
+ ["Superman Banana","time","","seconds","60 sec",60],
+ ["Lunge Kickback Curl Press","weight","","reps","20 reps",20],
+ ["Towel Hoppers","modtime","","seconds","60 sec",60],
+ ["Reach High and Under Push-Ups","body","","reps","max reps"],
+ ["Steam Engine","body","","reps","50 reps",50],
+ ["Dreya Roll","body","","reps",""]
  ],bonus:[
- ["Plank to Chaturanga Iso","time","CORE","seconds","60 sec",60],
- ["Halfback","time","CORE","seconds","60 sec",60],
- ["Table Dip Leg Raise","time","CORE","seconds","60 sec",60]
+ ["Plank to Chaturanga Iso","time","","seconds","60 sec",60],
+ ["Halfback","time","","seconds","60 sec",60],
+ ["Table Dip Leg Raise","time","","seconds","60 sec",60]
  ]}
 };
 const H="p90x_v3_history", C="p90x_v3_current";
@@ -128,11 +128,13 @@ function exerciseCard(k,ex,num){
  let e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1],cat=ex[2]||"",metric=ex[3]||"reps",hint=ex[4]||"",def=ex[5];
  if(def!==undefined&&(e.reps===undefined||e.reps==="")){e.reps=String(def);current.entries[k]=e;autosave()}
  let out=`<section class="card">${cat?`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px">${cat}</div>`:""}<div class="name">${num}. ${ex[0]}</div>${hint?`<div class="muted">${hint}</div>`:""}<div class="last">Last time: ${desc(last)}</div><div class="row">`;
- if(type==="weight")out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
+ if(type==="weight"||type==="weighttime")out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
  if(metric==="seconds") out+=`<div class="grow"><label>Seconds</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
  else out+=`<div class="grow"><label>Reps</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
  if(type==="pull")out+=`<div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
  if(type==="body")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+ if(type==="plankvar")out+=`<div class="grow"><label>Variation</label><select onchange="setv('${k}','mod',this.value)">${["Plank","Plank / Chaturanga"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+ if(type==="modtime")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
  out+=`</div><div style="margin-top:9px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`;
  return out;
 }
@@ -140,14 +142,16 @@ function renderWorkout(){
  let w=workouts[active];document.getElementById("title").textContent=w.name;document.getElementById("subtitle").textContent=fmtDate(current.date);document.getElementById("saveBtn").classList.remove("hidden");let out="";
  if(w.sequence){
    w.sequence.forEach((ex,i)=>{out+=exerciseCard(`s-${i}`,ex,i+1)});
+   if(w.bonus){let yes=current.bonus===true;out+=bonusChoice();if(yes){out+=`<div class="round">BONUS ROUND</div>`;w.bonus.forEach((ex,i)=>out+=exerciseCard(`bonus-${i}`,ex,i+1))}}
  }else if(w.groups){
    w.groups.forEach((g,gi)=>{out+=`<div class="round">${g.label}</div>`;g.ex.forEach((ex,i)=>{out+=exerciseCard(`g${gi}-${i}`,ex,i+1)})});
-   if(w.bonus){let yes=current.bonus===true;out+=`<section class="card"><div class="workoutTitle">BONUS ROUND</div><div class="muted">Doing the bonus round?</div><div class="actions"><button class="btn ${!yes?'activeChoice':''}" onclick="setBonus(false)">No</button><button class="btn ${yes?'activeChoice':''}" onclick="setBonus(true)">Yes</button></div></section>`;if(yes){out+=`<div class="round">BONUS ROUND</div>`;w.bonus.forEach((ex,i)=>out+=exerciseCard(`bonus-${i}`,ex,i+1))}}
+   if(w.bonusGroups){let yes=current.bonus===true;out+=bonusChoice();if(yes)w.bonusGroups.forEach((g,gi)=>{out+=`<div class="round">${g.label}</div>`;g.ex.forEach((ex,i)=>out+=exerciseCard(`bg${gi}-${i}`,ex,i+1))})}
  }else{
    for(let r=1;r<=w.rounds;r++){out+=`<div class="round">ROUND ${r}</div>`;w.ex.forEach((ex,i)=>{out+=exerciseCard(key(r,i),ex,i+1)})}
  }
  document.getElementById("main").innerHTML=out;
 }
+function bonusChoice(){let yes=current.bonus===true;return `<section class="card"><div class="workoutTitle">BONUS ROUND</div><div class="muted">Continue to the bonus round?</div><div class="actions"><button class="btn ${!yes?'activeChoice':''}" onclick="setBonus(false)">No</button><button class="btn ${yes?'activeChoice':''}" onclick="setBonus(true)">Yes</button></div></section>`}
 function setBonus(v){current.bonus=v;autosave();renderWorkout()}
 function saveWorkout(){
  if(!Object.values(current.entries).some(e=>e.reps)){alert("Enter at least one set first.");return}
