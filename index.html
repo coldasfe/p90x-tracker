@@ -29,7 +29,7 @@ textarea{font-size:15px;min-height:44px}.name{font-size:18px;font-weight:750}.la
 <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.6</div><div class="saved" id="savedStatus"></div>
+<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.8</div><div class="saved" id="savedStatus"></div>
 <div class="topBtns"><button class="btn" onclick="home()">Home</button><button class="btn" onclick="showHistory()">History</button></div></header>
 <main class="wrap" id="main"></main>
 <button id="saveBtn" class="save hidden" onclick="saveWorkout()">Finish Workout</button>
@@ -101,19 +101,117 @@ const workouts={
  ["Plank to Chaturanga Iso","time","","seconds","60 sec",60],
  ["Halfback","time","","seconds","60 sec",60],
  ["Table Dip Leg Raise","time","","seconds","60 sec",60]
+ ]} ,
+ chest_shoulders_triceps:{name:"Chest, Shoulders & Triceps",sequence:[
+ ["Slow-Motion 3-in-1 Push-Ups","body","CHEST","reps","Optional bonus available",null,{skip:true}],
+ ["In & Out Shoulder Flys","weight","SHOULDERS","reps","16 reps",16],
+ ["Chair Dips","body","TRICEPS","reps","",null,{skip:true}],
+ ["Plange Push-Ups","body","CHEST","reps","",null,{skip:true}],
+ ["Pike Press","body","SHOULDERS","reps","",null,{skip:true}],
+ ["Tricep Kickbacks","weight","TRICEPS","reps","Your replacement for Side Tri-Rises"],
+ ["Floor Flys","body","CHEST","reps","",null,{skip:true}],
+ ["Scarecrows","weight","SHOULDERS","reps",""],
+ ["Overhead Tricep Extensions","weight","TRICEPS","reps",""],
+ ["Two-Twitch Speed Push-Ups","body","CHEST","reps","",null,{skip:true}],
+ ["Y-Press","weight","SHOULDERS","reps",""],
+ ["Lying-Back Tricep Extensions","weight","TRICEPS","reps",""],
+ ["Side-to-Side Push-Ups","body","CHEST","reps","",null,{skip:true}],
+ ["Pour Flys","weight","SHOULDERS","reps",""],
+ ["Side-Leaning Tricep Extensions","weight","TRICEPS","reps","",null,{repLabel:"Reps each arm"}],
+ ["One-Arm Push-Ups","choicebody","CHEST","reps","",null,{choices:["One-Arm","Regular Push-Ups","Skipped"]}],
+ ["Weighted Circles","weighttime","SHOULDERS","seconds","40 sec",40],
+ ["Throw the Bomb","weight","TRICEPS","reps","",null,{repLabel:"Reps each side"}],
+ ["Clap or Plyo Push-Ups","pushvar","CHEST","reps","",null,{skip:true}],
+ ["Slow-Mo Throw","weight","SHOULDERS","reps",""],
+ ["Front-to-Back Tricep Extensions","weight","TRICEPS","reps","",null,{repLabel:"Reps each arm"}],
+ ["One-Arm Balance Push-Ups","body","CHEST","reps","",null,{skip:true}],
+ ["Fly-Row-Press","weight","SHOULDERS","reps",""],
+ ["Lying-Back Cross-Body Blows","weight","TRICEPS","reps","",null,{repLabel:"Reps each arm"}]
+ ]},
+ back_biceps:{name:"Back & Biceps",sequence:[
+ ["Pull-Ups","pull","BACK","reps",""],
+ ["Lawnmowers","weight","BACK","reps","",null,{repLabel:"Reps each side"}],
+ ["21s","weight","BICEPS","reps","21 reps",21],
+ ["One-Arm Cross-Body Curls","weight","BICEPS","reps","",null,{repLabel:"Reps each arm"}],
+ ["Switch-Grip Pull-Ups","pull","BACK","reps",""],
+ ["Elbows-Out Lawnmowers","weight","BACK","reps","",null,{repLabel:"Reps each arm"}],
+ ["Standing Bicep Curls","weight","BICEPS","reps",""],
+ ["One-Arm Concentration Curls","weight","BICEPS","reps","",null,{repLabel:"Reps each arm"}],
+ ["Corn Cob Pull-Ups","pull","BACK","reps",""],
+ ["Reverse-Grip Bent-Over Rows","weight","BACK","reps",""],
+ ["Open-Arm Curls","weight","BICEPS","reps",""],
+ ["Static Arm Curls","weight","BICEPS","reps","16 reps",16],
+ ["Towel Pull-Ups","pull","BACK","reps",""],
+ ["Congdon Locomotives","weight","BACK","reps","40 reps",40],
+ ["Crouching Cohen Curls","weight","BICEPS","reps",""],
+ ["Corkscrew Curls","weight","BICEPS","reps","",null,{repLabel:"Reps each arm"}],
+ ["Chin-Ups","pull","BACK","reps",""],
+ ["Seated Bent-Over Back Flys","weight","BACK","reps",""],
+ ["Curl-Up / Hammer-Down","weight","BICEPS","reps",""],
+ ["Hammer Curls","weight","BICEPS","reps",""],
+ ["Max-Rep Pull-Ups","maxpull","BACK","reps","Max reps"],
+ ["Superman","bodyplain","BACK","reps","5 reps • 10-sec hold each",5],
+ ["In & Out Hammer Curls","weight","BICEPS","reps",""],
+ ["Strip-Set Curls","stripset","BICEPS","reps","4 sets × 8 reps",8]
  ]}
 };
 const H="p90x_v3_history", C="p90x_v3_current";
 let old=JSON.parse(localStorage.getItem("p90x_v2_history")||"[]");
 let history=JSON.parse(localStorage.getItem(H)||"null")||old.map(w=>({...w,workout:w.workout||"chest_back"}));
 localStorage.setItem(H,JSON.stringify(history));
+// One-time import of the two Phase 2 baseline workouts captured live on Sept. 16, 2026.
+if(!localStorage.getItem("p90x_v37_phase2_seeded")){
+ const seed=[
+ {id:2026091601,workout:"chest_shoulders_triceps",date:"2026-09-16T20:00:00-04:00",entries:{
+  "s-0":{reps:"12",mod:"Modified",note:"Optional bonus skipped"},"s-1":{weight:"5",reps:"16"},"s-2":{reps:"20",mod:"Standard"},"s-3":{reps:"10",mod:"Modified"},"s-4":{reps:"10",mod:"Standard",note:"Shallow / limited depth"},"s-5":{weight:"15",reps:"10"},"s-6":{reps:"17",mod:"Modified",note:"On knees"},"s-7":{weight:"15",reps:"9"},"s-8":{weight:"30",reps:"10"},"s-9":{reps:"16",mod:"Modified",note:"On knees"},"s-10":{weight:"15",reps:"10"},"s-11":{weight:"15",reps:"9"},"s-12":{reps:"12",mod:"Modified"},"s-13":{weight:"5",reps:"12"},"s-14":{weight:"10",reps:"9"},"s-15":{reps:"0",mod:"Skipped"},"s-16":{weight:"3",reps:"40",metric:"seconds"},"s-17":{weight:"15",reps:"10"},"s-18":{reps:"8",variation:"Clap",mod:"Modified",note:"On knees"},"s-19":{weight:"5",reps:"11"},"s-20":{weight:"10",reps:"10"},"s-21":{reps:"10",mod:"Modified",note:"On knees"},"s-22":{weight:"15",reps:"8",note:"Grueling"},"s-23":{weight:"15",reps:"15"}
+ }},
+ {id:2026091602,workout:"back_biceps",date:"2026-09-16T21:00:00-04:00",entries:{
+  "s-0":{reps:"20",mod:"Band"},"s-1":{weight:"25",reps:"16"},"s-2":{weight:"20",reps:"21"},"s-3":{weight:"20",reps:"10"},"s-4":{reps:"20",mod:"Band"},"s-5":{weight:"25",reps:"14"},"s-6":{weight:"25",reps:"10"},"s-7":{weight:"20",reps:"8"},"s-8":{reps:"10",mod:"Band"},"s-9":{weight:"25",reps:"12"},"s-10":{weight:"25",reps:"8"},"s-11":{weight:"20",reps:"16"},"s-12":{reps:"12",mod:"Band"},"s-13":{weight:"25",reps:"40",note:"25 lb was the right weight"},"s-14":{weight:"15",reps:"10"},"s-15":{weight:"20",reps:"10"},"s-16":{reps:"20",mod:"Band"},"s-17":{weight:"25",reps:"12"},"s-18":{weight:"25",reps:"9"},"s-19":{weight:"25",reps:"11"},"s-20":{reps:"18",variation:"Standard",mod:"Band"},"s-21":{reps:"5",note:"10-sec hold each"},"s-22":{weight:"20",reps:"8"},"s-23":{reps:"8",strips:[{weight:"25",reps:"8"},{weight:"20",reps:"8"},{weight:"15",reps:"8"},{weight:"15",reps:"8"}]}
+ }}];
+ seed.forEach(w=>{if(!history.some(x=>x.id===w.id))history.push(w)});history.sort((a,b)=>new Date(a.date)-new Date(b.date));localStorage.setItem(H,JSON.stringify(history));localStorage.setItem("p90x_v37_phase2_seeded","1");
+}
+
+// One-time import of Chest, Shoulders & Triceps completed Sept. 22, 2026.
+if(!localStorage.getItem("p90x_v38_sep22_seeded")){
+ const w={id:2026092201,workout:"chest_shoulders_triceps",date:"2026-09-22T21:30:00-04:00",entries:{
+  "s-0":{reps:"12",mod:"Modified",note:"On knees"},
+  "s-1":{weight:"5",reps:"16"},
+  "s-2":{reps:"15",mod:"Standard"},
+  "s-3":{reps:"12",mod:"Modified",note:"On knees"},
+  "s-4":{reps:"10",mod:"Standard"},
+  "s-5":{weight:"15",reps:"11"},
+  "s-6":{reps:"20",mod:"Modified",note:"On knees"},
+  "s-7":{weight:"15",reps:"10"},
+  "s-8":{weight:"15",reps:"10"},
+  "s-9":{reps:"14",mod:"Modified",note:"On knees"},
+  "s-10":{weight:"20",reps:"10"},
+  "s-11":{weight:"15",reps:"10"},
+  "s-12":{reps:"14",mod:"Modified",note:"On knees"},
+  "s-13":{weight:"10",reps:"10"},
+  "s-14":{weight:"15",reps:"10"},
+  "s-15":{reps:"14",mod:"Regular Push-Ups",note:"Two-arm, on knees"},
+  "s-16":{weight:"3",reps:"40",metric:"seconds",note:"40 sec"},
+  "s-17":{weight:"15",reps:"11"},
+  "s-18":{reps:"8",variation:"Clap",mod:"Modified",note:"On knees"},
+  "s-19":{weight:"10",reps:"10"},
+  "s-20":{weight:"15",reps:"8",note:"Each direction"},
+  "s-21":{reps:"10",mod:"Modified",note:"On knees"},
+  "s-22":{weight:"15",reps:"9"},
+  "s-23":{weight:"20",reps:"15"}
+ }};
+ if(!history.some(x=>x.id===w.id))history.push(w);
+ history.sort((a,b)=>new Date(a.date)-new Date(b.date));
+ localStorage.setItem(H,JSON.stringify(history));
+ localStorage.setItem("p90x_v38_sep22_seeded","1");
+}
+
 let current=null, active=null;
 function fresh(id){return{id:Date.now(),workout:id,date:new Date().toISOString(),entries:{}}}
 function fmtDate(x){return new Date(x).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"})}
 function priorFor(workoutId,k,date,id){
  return history.filter(w=>w.workout===workoutId && w.id!==id && new Date(w.date)<new Date(date) && w.entries?.[k]?.reps)
  .sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.entries[k]||null}
-function desc(e){if(!e)return"—";let a=[];if(e.weight)a.push(e.weight+" lb");if(e.reps)a.push(e.reps+" reps");if(e.mod&&e.mod!=="Standard"&&e.mod!=="None")a.push(e.mod);return a.length?a.join(" × "):"—"}
+function desc(e){if(!e)return"—";if(e.strips){return e.strips.map(x=>`${x.weight||"?"} lb × ${x.reps||8}`).join(" → ")}let a=[];if(e.weight)a.push(e.weight+" lb");if(e.reps)a.push(e.reps+(e.metric==="seconds"?" sec":" reps"));if(e.variation)a.push(e.variation);if(e.mod&&e.mod!=="Standard"&&e.mod!=="None")a.push(e.mod);return a.length?a.join(" × "):"—"}
 function home(){
  active=null;current=null;document.getElementById("saveBtn").classList.add("hidden");document.getElementById("title").textContent="P90X Tracker";document.getElementById("subtitle").textContent="Choose a workout";
  let cards=Object.entries(workouts).map(([id,w])=>{let detail=w.sequence?`${w.sequence.length} exercises`:w.groups?`${w.groups.length} sets • ${w.groups.reduce((n,g)=>n+g.ex.length,0)} tracked entries`:`${w.rounds} rounds • ${w.ex.length*w.rounds} tracked sets`;return`<section class="card workoutCard" onclick="start('${id}')"><div class="workoutTitle">${w.name}</div><div class="muted">${detail}</div></section>`}).join("");let draft=JSON.parse(localStorage.getItem(C)||"null");if(draft&&workouts[draft.workout]){let n=Object.keys(draft.entries||{}).length;cards=`<section class="card workoutCard" onclick="start('${draft.workout}',JSON.parse(localStorage.getItem(C)))"><div class="workoutTitle">Resume ${workouts[draft.workout].name}</div><div class="muted">${n} entries autosaved • ${fmtDate(draft.date)}</div></section>`+cards}document.getElementById("main").innerHTML=cards}
@@ -125,19 +223,31 @@ function key(r,i){return`${r}-${i}`}
 function setv(k,f,v){current.entries[k]=current.entries[k]||{};current.entries[k][f]=v;autosave()}
 function autosave(){localStorage.setItem(C,JSON.stringify(current));let s=document.getElementById("savedStatus");s.textContent="✓ Saved";clearTimeout(window._st);window._st=setTimeout(()=>s.textContent="✓ Autosave on",1500)}
 function exerciseCard(k,ex,num){
- let e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1],cat=ex[2]||"",metric=ex[3]||"reps",hint=ex[4]||"",def=ex[5];
- if(def!==undefined&&(e.reps===undefined||e.reps==="")){e.reps=String(def);current.entries[k]=e;autosave()}
- let out=`<section class="card">${cat?`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px">${cat}</div>`:""}<div class="name">${num}. ${ex[0]}</div>${hint?`<div class="muted">${hint}</div>`:""}<div class="last">Last time: ${desc(last)}</div><div class="row">`;
- if(type==="weight"||type==="weighttime")out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
- if(metric==="seconds") out+=`<div class="grow"><label>Seconds</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
- else out+=`<div class="grow"><label>Reps</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value)"></div>`;
- if(type==="pull")out+=`<div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
- if(type==="body")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
- if(type==="plankvar")out+=`<div class="grow"><label>Variation</label><select onchange="setv('${k}','mod',this.value)">${["Plank","Plank / Chaturanga"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
- if(type==="modtime")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
- out+=`</div><div style="margin-top:9px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`;
+ let e=current.entries[k]||{},last=priorFor(active,k,current.date,current.id),type=ex[1],cat=ex[2]||"",metric=ex[3]||"reps",hint=ex[4]||"",def=ex[5],cfg=ex[6]||{};
+ if(def!==undefined&&def!==null&&(e.reps===undefined||e.reps==="")){e.reps=String(def);current.entries[k]=e;autosave()}
+ let out=`<section class="card">${cat?`<div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px">${cat}</div>`:""}<div class="name">${num}. ${ex[0]}</div>${hint?`<div class="muted">${hint}</div>`:""}<div class="last">Last time: ${desc(last)}</div>`;
+ if(type==="stripset"){
+   let strips=e.strips||[{weight:"",reps:"8"},{weight:"",reps:"8"},{weight:"",reps:"8"},{weight:"",reps:"8"}];
+   out+=strips.map((x,i)=>`<div class="row" style="margin-top:9px"><div class="grow"><label>Set ${i+1} Weight (lb)</label><input inputmode="decimal" value="${x.weight||""}" onchange="setStrip('${k}',${i},'weight',this.value)"></div><div class="grow"><label>Reps</label><input inputmode="numeric" value="${x.reps||8}" onchange="setStrip('${k}',${i},'reps',this.value)"></div></div>`).join("");
+ }else{
+   out+=`<div class="row">`;
+   if(type==="weight"||type==="weighttime")out+=`<div class="grow"><label>Weight (lb)</label><input inputmode="decimal" value="${e.weight||""}" onchange="setv('${k}','weight',this.value)"></div>`;
+   let repLabel=cfg.repLabel||(metric==="seconds"?"Seconds":"Reps");
+   out+=`<div class="grow"><label>${repLabel}</label><input inputmode="numeric" value="${e.reps||""}" onchange="setv('${k}','reps',this.value);setv('${k}','metric','${metric}')"></div>`;
+   if(type==="pull")out+=`<div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   if(type==="body")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified",...(cfg.skip?["Skipped"]:[])].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   if(type==="choicebody")out+=`<div class="grow"><label>Variation</label><select onchange="setv('${k}','mod',this.value)">${cfg.choices.map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   if(type==="pushvar")out+=`<div class="grow"><label>Variation</label><select onchange="setv('${k}','variation',this.value)">${["Clap","Plyo"].map(v=>`<option ${e.variation===v?"selected":""}>${v}</option>`).join("")}</select></div><div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified","Skipped"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   if(type==="maxpull")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','variation',this.value)">${["Standard","Wide","Chin-Up","Corn Cob"].map(v=>`<option ${e.variation===v?"selected":""}>${v}</option>`).join("")}</select></div><div class="grow"><label>Assistance</label><select onchange="setv('${k}','mod',this.value)">${["None","Chair","Band"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   if(type==="plankvar")out+=`<div class="grow"><label>Variation</label><select onchange="setv('${k}','mod',this.value)">${["Plank","Plank / Chaturanga"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   if(type==="modtime")out+=`<div class="grow"><label>Style</label><select onchange="setv('${k}','mod',this.value)">${["Standard","Modified"].map(v=>`<option ${e.mod===v?"selected":""}>${v}</option>`).join("")}</select></div>`;
+   out+=`</div>`;
+ }
+ out+=`<div style="margin-top:9px"><label>Quick note</label><textarea placeholder="Optional…" onchange="setv('${k}','note',this.value)">${e.note||""}</textarea></div></section>`;
  return out;
 }
+function setStrip(k,i,f,v){current.entries[k]=current.entries[k]||{};current.entries[k].strips=current.entries[k].strips||[{weight:"",reps:"8"},{weight:"",reps:"8"},{weight:"",reps:"8"},{weight:"",reps:"8"}];current.entries[k].strips[i][f]=v;current.entries[k].reps="8";autosave()}
+
 function renderWorkout(){
  let w=workouts[active];document.getElementById("title").textContent=w.name;document.getElementById("subtitle").textContent=fmtDate(current.date);document.getElementById("saveBtn").classList.remove("hidden");let out="";
  if(w.sequence){
@@ -162,7 +272,7 @@ function showHistory(){
  let sorted=[...history].sort((a,b)=>new Date(b.date)-new Date(a.date));let backup=`<section class="card"><div class="workoutTitle">Data Backup</div><div class="muted">Download a backup of your workout history, or restore one later.</div><div class="actions"><button class="btn" onclick="exportData()">Export Backup</button><button class="btn" onclick="document.getElementById('importFile').click()">Restore Backup</button><input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importData(this.files[0])"></div></section>`;document.getElementById("main").innerHTML=backup+(sorted.length?sorted.map(w=>{
  let sets=Object.values(w.entries||{}).filter(e=>e.reps).length,name=workouts[w.workout]?.name||"Workout";
  return`<section class="card"><div class="workoutTitle">${name}</div><div class="muted">${fmtDate(w.date)} • ${sets} sets recorded</div><div class="actions"><button class="btn" onclick="editById(${w.id})">Edit</button><button class="btn danger" onclick="delById(${w.id})">Delete</button></div></section>`}).join(""):`<div class="empty">No saved workouts yet.</div>`)}
-function exportData(){let data={app:"P90X Tracker",version:"3.4",exported:new Date().toISOString(),history:history,current:JSON.parse(localStorage.getItem(C)||"null")};let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="p90x-tracker-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)}
+function exportData(){let data={app:"P90X Tracker",version:"3.7",exported:new Date().toISOString(),history:history,current:JSON.parse(localStorage.getItem(C)||"null")};let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="p90x-tracker-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)}
 function importData(file){if(!file)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.history))throw Error();if(!confirm(`Restore ${d.history.length} saved workouts from this backup? This replaces current history.`))return;history=d.history;localStorage.setItem(H,JSON.stringify(history));if(d.current)localStorage.setItem(C,JSON.stringify(d.current));else localStorage.removeItem(C);alert("Backup restored.");showHistory()}catch(e){alert("That file does not look like a valid P90X Tracker backup.")}};r.readAsText(file)}
 function editById(id){let w=history.find(x=>x.id===id);if(w)start(w.workout,w)}
 function delById(id){if(confirm("Delete this saved workout?")){history=history.filter(w=>w.id!==id);localStorage.setItem(H,JSON.stringify(history));showHistory()}}
