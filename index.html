@@ -29,7 +29,7 @@ textarea{font-size:15px;min-height:44px}.name{font-size:18px;font-weight:750}.la
 <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.8</div><div class="saved" id="savedStatus"></div>
+<header><h1 id="title">P90X Tracker</h1><div class="sub" id="subtitle">Choose a workout</div><div class="version">v3.9</div><div class="saved" id="savedStatus"></div>
 <div class="topBtns"><button class="btn" onclick="home()">Home</button><button class="btn" onclick="showHistory()">History</button></div></header>
 <main class="wrap" id="main"></main>
 <button id="saveBtn" class="save hidden" onclick="saveWorkout()">Finish Workout</button>
@@ -269,11 +269,20 @@ function saveWorkout(){
  history.sort((a,b)=>new Date(a.date)-new Date(b.date));localStorage.setItem(H,JSON.stringify(history));localStorage.removeItem(C);document.getElementById("savedStatus").textContent="";alert("Workout finished and saved.");showHistory()}
 function showHistory(){
  active=null;current=null;document.getElementById("saveBtn").classList.add("hidden");document.getElementById("title").textContent="History";document.getElementById("subtitle").textContent="Saved workouts";
- let sorted=[...history].sort((a,b)=>new Date(b.date)-new Date(a.date));let backup=`<section class="card"><div class="workoutTitle">Data Backup</div><div class="muted">Download a backup of your workout history, or restore one later.</div><div class="actions"><button class="btn" onclick="exportData()">Export Backup</button><button class="btn" onclick="document.getElementById('importFile').click()">Restore Backup</button><input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importData(this.files[0])"></div></section>`;document.getElementById("main").innerHTML=backup+(sorted.length?sorted.map(w=>{
+ let sorted=[...history].sort((a,b)=>new Date(b.date)-new Date(a.date));let backup=`<section class="card"><div class="workoutTitle">Data Backup</div><div class="muted">Download a backup of your workout history, or merge one into your current history.</div><div class="actions"><button class="btn" onclick="exportData()">Export Backup</button><button class="btn" onclick="document.getElementById('importFile').click()">Merge Backup</button><input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importData(this.files[0])"></div></section>`;document.getElementById("main").innerHTML=backup+(sorted.length?sorted.map(w=>{
  let sets=Object.values(w.entries||{}).filter(e=>e.reps).length,name=workouts[w.workout]?.name||"Workout";
  return`<section class="card"><div class="workoutTitle">${name}</div><div class="muted">${fmtDate(w.date)} • ${sets} sets recorded</div><div class="actions"><button class="btn" onclick="editById(${w.id})">Edit</button><button class="btn danger" onclick="delById(${w.id})">Delete</button></div></section>`}).join(""):`<div class="empty">No saved workouts yet.</div>`)}
 function exportData(){let data={app:"P90X Tracker",version:"3.7",exported:new Date().toISOString(),history:history,current:JSON.parse(localStorage.getItem(C)||"null")};let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="p90x-tracker-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)}
-function importData(file){if(!file)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.history))throw Error();if(!confirm(`Restore ${d.history.length} saved workouts from this backup? This replaces current history.`))return;history=d.history;localStorage.setItem(H,JSON.stringify(history));if(d.current)localStorage.setItem(C,JSON.stringify(d.current));else localStorage.removeItem(C);alert("Backup restored.");showHistory()}catch(e){alert("That file does not look like a valid P90X Tracker backup.")}};r.readAsText(file)}
+function importData(file){if(!file)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.history))throw Error();
+if(!confirm(`Merge ${d.history.length} saved workouts from this backup with your current history? Existing workouts will be kept and duplicates skipped.`))return;
+let added=0,skipped=0;
+const sig=w=>JSON.stringify([w.id||null,w.workout||"",w.date||"",w.entries||{}]);
+const existing=new Set(history.map(sig));
+for(const w of d.history){let s=sig(w);if(existing.has(s)){skipped++;continue}history.push(w);existing.add(s);added++}
+history.sort((a,b)=>new Date(a.date)-new Date(b.date));localStorage.setItem(H,JSON.stringify(history));
+if(d.current&&!localStorage.getItem(C))localStorage.setItem(C,JSON.stringify(d.current));
+alert(`Backup merged. ${added} workout${added===1?"":"s"} added${skipped?`, ${skipped} duplicate${skipped===1?"":"s"} skipped`:""}.`);showHistory()
+}catch(e){alert("That file does not look like a valid P90X Tracker backup.")}};r.readAsText(file)}
 function editById(id){let w=history.find(x=>x.id===id);if(w)start(w.workout,w)}
 function delById(id){if(confirm("Delete this saved workout?")){history=history.filter(w=>w.id!==id);localStorage.setItem(H,JSON.stringify(history));showHistory()}}
 home();
